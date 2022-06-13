@@ -1,7 +1,69 @@
+const id = require("bson-objectid");
 const fs = require('fs/promises');
 // const fs = require('fs').promises;
 const path = require('path');
-const contactsPath = 1
+
+
+const contactsPath = path.join(__dirname, "db", "contacts.json");
+
+async function updateContact(contact) {
+  await fs.writeFile(contactsPath, JSON.stringify(contact, null, 2));
+}
+
+async function listContacts() {
+    const result = await fs.readFile(contactsPath);
+    const contacts = JSON.parse(result);
+    return contacts;
+};
+
+async function getContactById(contactId) {
+  const contacts = await listContacts();
+  const result = contacts.find(book => book.id === contactId);
+  if (!result) {
+    console.log(`not find contact with id ${contactId}`);
+    return null
+  }
+  return result
+};
+
+async function removeContact(contactId) {
+  const data = await listContacts();
+  const idx = data.findIndex((iteam) => iteam.id === contactId);
+  if (idx === -1) {
+    return null;
+  }
+  const [removeContact] = data.splice(idx, 1);
+  updateContact(data);
+  return removeContact;
+};
+
+async function addContact(name, email, phone) {
+  const data = await listContacts();
+  // console.log(contacts);
+  const newContact = {
+    name,
+    email,
+    phone,
+    id: id(),
+  };
+  // console.log(newContact);
+  
+  data.push(newContact)
+  updateContact(data);
+  return newContact
+};
+
+module.exports = {
+    listContacts,
+    getContactById,
+    removeContact,
+    addContact
+};
+
+
+
+
+
 
 // const fileOperations = async (filePath, action = "read", data) => {
 //     switch (action) {
@@ -22,30 +84,3 @@ const contactsPath = 1
 // };
 
 // fileOperations('./db/contacts.json', 'read');
-
-
-// TODO: задокументировать каждую функцию
-async function listContacts() {
-    const result = await fs.readFile('./db/contacts.json', 'utf-8');
-    const contacts = JSON.parse(result);
-    return contacts;
-}
-
-function getContactById(contactId) {
-  // ...твой код
-}
-
-function removeContact(contactId) {
-  // ...твой код
-}
-
-function addContact(name, email, phone) {
-  // ...твой код
-}
-
-module.exports = {
-    listContacts,
-    getContactById,
-    removeContact,
-    addContact
-};
